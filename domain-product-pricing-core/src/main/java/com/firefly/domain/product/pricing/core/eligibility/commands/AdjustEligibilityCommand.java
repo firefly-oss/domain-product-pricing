@@ -16,7 +16,7 @@
 
 package com.firefly.domain.product.pricing.core.eligibility.commands;
 
-import com.firefly.common.cqrs.command.Command;
+import org.fireflyframework.cqrs.command.Command;
 import lombok.Data;
 
 import java.util.UUID;

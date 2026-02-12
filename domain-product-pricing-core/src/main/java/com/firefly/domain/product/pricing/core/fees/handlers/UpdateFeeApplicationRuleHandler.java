@@ -1,11 +1,9 @@
 package com.firefly.domain.product.pricing.core.fees.handlers;
 
-import com.firefly.common.cqrs.annotations.CommandHandlerComponent;
-import com.firefly.common.cqrs.command.CommandHandler;
-import com.firefly.core.product.sdk.api.FeeApplicationRuleApi;
-import com.firefly.core.product.sdk.api.ProductPricingApi;
+import org.fireflyframework.cqrs.annotations.CommandHandlerComponent;
+import org.fireflyframework.cqrs.command.CommandHandler;
+import com.firefly.core.product.sdk.api.ProductConfigurationApi;
 import com.firefly.domain.product.pricing.core.fees.commands.UpdateFeeApplicationRuleCommand;
-import com.firefly.domain.product.pricing.core.pricing.commands.UpdateProductPricingCommand;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -14,16 +12,16 @@ import java.util.UUID;
 @CommandHandlerComponent
 public class UpdateFeeApplicationRuleHandler extends CommandHandler<UpdateFeeApplicationRuleCommand, UUID> {
 
-    private final FeeApplicationRuleApi feeApplicationRuleApi;
+    private final ProductConfigurationApi productConfigurationApi;
 
-    public UpdateFeeApplicationRuleHandler(FeeApplicationRuleApi feeApplicationRuleApi) {
-        this.feeApplicationRuleApi = feeApplicationRuleApi;
+    public UpdateFeeApplicationRuleHandler(ProductConfigurationApi productConfigurationApi) {
+        this.productConfigurationApi = productConfigurationApi;
     }
 
     @Override
     protected Mono<UUID> doHandle(UpdateFeeApplicationRuleCommand cmd) {
-        return feeApplicationRuleApi.updateRule(cmd.getFeeApplicationRuleId(), cmd.getFeeComponentId(), cmd.getFeeApplicationRuleId(), cmd, UUID.randomUUID().toString())
-                .mapNotNull(feeApplicationRuleDTO ->
-                        Objects.requireNonNull(Objects.requireNonNull(feeApplicationRuleDTO).getFeeApplicationRuleId()));
+        return productConfigurationApi.updateConfiguration(cmd.getProductId(), cmd.getFeeApplicationRuleId(), cmd, UUID.randomUUID().toString())
+                .mapNotNull(productConfigurationDTO ->
+                        Objects.requireNonNull(Objects.requireNonNull(productConfigurationDTO).getProductConfigurationId()));
     }
 }

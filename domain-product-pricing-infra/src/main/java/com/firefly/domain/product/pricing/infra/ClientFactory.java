@@ -1,6 +1,6 @@
 package com.firefly.domain.product.pricing.infra;
 
-import com.firefly.core.product.sdk.api.*;
+import com.firefly.core.product.sdk.api.ProductConfigurationApi;
 import com.firefly.core.product.sdk.invoker.ApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,28 +23,8 @@ public class ClientFactory {
     }
 
     @Bean
-    public ProductPricingApi productPricingApi() {
-        return new ProductPricingApi(apiClient);
-    }
-
-    @Bean
-    public ProductFeeStructureApi productFeeStructureApi() {
-        return new ProductFeeStructureApi(apiClient);
-    }
-
-    @Bean
-    public FeeStructureApi feeStructureApi() {
-        return new FeeStructureApi(apiClient);
-    }
-
-    @Bean
-    public ProductFeeComponentApi productFeeComponentApi() {
-        return new ProductFeeComponentApi(apiClient);
-    }
-
-    @Bean
-    public FeeApplicationRuleApi feeApplicationRuleApi() {
-        return new FeeApplicationRuleApi(apiClient);
+    public ProductConfigurationApi productConfigurationApi() {
+        return new ProductConfigurationApi(apiClient);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.firefly.domain.product.pricing.core.fees.commands;
 
-import com.firefly.common.cqrs.command.Command;
-import com.firefly.core.product.sdk.model.FeeApplicationRuleDTO;
+import org.fireflyframework.cqrs.command.Command;
+import com.firefly.core.product.sdk.model.ProductConfigurationDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class UpdateFeeApplicationRuleCommand extends FeeApplicationRuleDTO implements Command<UUID> {
+public class UpdateFeeApplicationRuleCommand extends ProductConfigurationDTO implements Command<UUID> {
     private UUID feeApplicationRuleId;
     private UUID feeComponentId;
 

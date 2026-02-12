@@ -1,11 +1,11 @@
 package com.firefly.domain.product.pricing.core.fees.workflows;
 
-import com.firefly.common.cqrs.command.CommandBus;
+import org.fireflyframework.cqrs.command.CommandBus;
 import com.firefly.domain.product.pricing.core.fees.commands.*;
-import com.firefly.transactional.saga.annotations.Saga;
-import com.firefly.transactional.saga.annotations.SagaStep;
-import com.firefly.transactional.saga.annotations.StepEvent;
-import com.firefly.transactional.saga.core.SagaContext;
+import org.fireflyframework.transactional.saga.annotations.Saga;
+import org.fireflyframework.transactional.saga.annotations.SagaStep;
+import org.fireflyframework.transactional.saga.annotations.StepEvent;
+import org.fireflyframework.transactional.saga.core.SagaContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -35,8 +35,8 @@ public class RegisterFeeSchemaSaga {
                 .doOnNext(freeStructureId -> ctx.variables().put(CTX_FEE_STRUCTURE_ID, freeStructureId));
     }
 
-    public Mono<Void> removeFeeStructure(UUID feeStructureId) {
-        return commandBus.send(new RemoveFeeStructureCommand(feeStructureId));
+    public Mono<Void> removeFeeStructure(UUID feeStructureId, SagaContext ctx) {
+        return commandBus.send(new RemoveFeeStructureCommand(ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class), feeStructureId));
     }
 
 
@@ -48,7 +48,7 @@ public class RegisterFeeSchemaSaga {
     }
 
     public Mono<Void> removeFeeComponent(UUID feeComponentId, SagaContext ctx) {
-        return commandBus.send(new RemoveFeeComponentCommand(feeComponentId, ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class)));
+        return commandBus.send(new RemoveFeeComponentCommand(ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class), feeComponentId, ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class)));
     }
 
     @SagaStep(id = STEP_REGISTER_FEE_APPLICATION_RULE, compensate = COMPENSATE_REMOVE_FEE_APPLICATION_RULE, dependsOn = {STEP_REGISTER_FEE_COMPONENT, STEP_REGISTER_FEE_STRUCTURE})
@@ -60,6 +60,7 @@ public class RegisterFeeSchemaSaga {
 
     public Mono<Void> removeFeeApplicationRule(UUID feeApplicationRuleId, SagaContext ctx) {
         return commandBus.send(new RemoveFeeApplicationRuleCommand(
+                ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class),
                 feeApplicationRuleId,
                 ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class),
                 ctx.getVariableAs(CTX_FEE_COMPONENT_ID, UUID.class)));

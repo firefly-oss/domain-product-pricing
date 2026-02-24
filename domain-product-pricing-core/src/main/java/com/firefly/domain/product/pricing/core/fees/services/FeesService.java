@@ -2,7 +2,7 @@ package com.firefly.domain.product.pricing.core.fees.services;
 
 import com.firefly.domain.product.pricing.core.fees.commands.RegisterFeeSchemaCommand;
 import com.firefly.domain.product.pricing.core.fees.commands.UpdateFeeApplicationRuleCommand;
-import org.fireflyframework.transactional.saga.core.SagaResult;
+import org.fireflyframework.orchestration.saga.engine.SagaResult;
 import reactor.core.publisher.Mono;
 
 public interface FeesService {

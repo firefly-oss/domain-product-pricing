@@ -5,9 +5,9 @@ import com.firefly.domain.product.pricing.core.fees.commands.UpdateFeeApplicatio
 import com.firefly.domain.product.pricing.core.fees.services.FeesService;
 import com.firefly.domain.product.pricing.core.fees.workflows.RegisterFeeSchemaSaga;
 import com.firefly.domain.product.pricing.core.fees.workflows.UpdateFeeRuleSaga;
-import org.fireflyframework.transactional.saga.core.SagaResult;
-import org.fireflyframework.transactional.saga.engine.SagaEngine;
-import org.fireflyframework.transactional.saga.engine.StepInputs;
+import org.fireflyframework.orchestration.saga.engine.SagaResult;
+import org.fireflyframework.orchestration.saga.engine.SagaEngine;
+import org.fireflyframework.orchestration.saga.engine.StepInputs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -26,19 +26,19 @@ public class FeeServiceImpl implements FeesService {
     @Override
     public Mono<SagaResult> defineFeeScheme(RegisterFeeSchemaCommand command) {
         StepInputs inputs = StepInputs.builder()
-                .forStep(RegisterFeeSchemaSaga::registerFeeStructure, command.getFeeStructure())
-                .forStep(RegisterFeeSchemaSaga::registerFeeComponent, command.getFeeComponent())
-                .forStep(RegisterFeeSchemaSaga::registerFeeApplicationRule, command.getFeeApplicationRule())
-                .forStep(RegisterFeeSchemaSaga::registerProductFeeStructure, command.getProductFeeStructure())
+                .forStepId("registerFeeStructure", command.getFeeStructure())
+                .forStepId("registerFeeComponent", command.getFeeComponent())
+                .forStepId("registerFeeApplicationRule", command.getFeeApplicationRule())
+                .forStepId("registerProductFeeStructure", command.getProductFeeStructure())
                 .build();
-        return engine.execute(RegisterFeeSchemaSaga.class, inputs);
+        return engine.execute("RegisterFeeSchemaSaga", inputs);
     }
 
     @Override
     public Mono<SagaResult> updateFeeRule(UpdateFeeApplicationRuleCommand command) {
         StepInputs inputs = StepInputs.builder()
-                .forStep(UpdateFeeRuleSaga::updateFeeApplicationRule, command)
+                .forStepId("updateFee", command)
                 .build();
-        return engine.execute(UpdateFeeRuleSaga.class, inputs);
+        return engine.execute("UpdateFeeRuleSaga", inputs);
     }
 }

@@ -5,9 +5,9 @@ import com.firefly.domain.product.pricing.core.pricing.commands.UpdateProductPri
 import com.firefly.domain.product.pricing.core.pricing.services.PricingService;
 import com.firefly.domain.product.pricing.core.pricing.workflows.RegisterPricingSaga;
 import com.firefly.domain.product.pricing.core.pricing.workflows.UpdatePricingSaga;
-import org.fireflyframework.transactional.saga.core.SagaResult;
-import org.fireflyframework.transactional.saga.engine.SagaEngine;
-import org.fireflyframework.transactional.saga.engine.StepInputs;
+import org.fireflyframework.orchestration.saga.engine.SagaResult;
+import org.fireflyframework.orchestration.saga.engine.SagaEngine;
+import org.fireflyframework.orchestration.saga.engine.StepInputs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -25,16 +25,16 @@ public class PricingServiceImpl implements PricingService {
     @Override
     public Mono<SagaResult> registerPricing(RegisterProductPricingCommand registerProductPricingCommand) {
         StepInputs inputs = StepInputs.builder()
-                .forStep(RegisterPricingSaga::registerPricing, registerProductPricingCommand)
+                .forStepId("registerProductPricing", registerProductPricingCommand)
                 .build();
-        return engine.execute(RegisterPricingSaga.class, inputs);
+        return engine.execute("RegisterPricingSaga", inputs);
     }
 
     @Override
     public Mono<SagaResult> amendPricing(UpdateProductPricingCommand updateProductPricingCommand) {
         StepInputs inputs = StepInputs.builder()
-                .forStep(UpdatePricingSaga::updatePricing, updateProductPricingCommand)
+                .forStepId("updatePricing", updateProductPricingCommand)
                 .build();
-        return engine.execute(UpdatePricingSaga.class, inputs);
+        return engine.execute("UpdatePricingSaga", inputs);
     }
 }

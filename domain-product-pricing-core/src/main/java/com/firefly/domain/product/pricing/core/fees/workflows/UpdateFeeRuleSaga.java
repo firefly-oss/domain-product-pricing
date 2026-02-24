@@ -2,10 +2,10 @@ package com.firefly.domain.product.pricing.core.fees.workflows;
 
 import org.fireflyframework.cqrs.command.CommandBus;
 import com.firefly.domain.product.pricing.core.fees.commands.UpdateFeeApplicationRuleCommand;
-import org.fireflyframework.transactional.saga.annotations.Saga;
-import org.fireflyframework.transactional.saga.annotations.SagaStep;
-import org.fireflyframework.transactional.saga.annotations.StepEvent;
-import org.fireflyframework.transactional.saga.core.SagaContext;
+import org.fireflyframework.orchestration.saga.annotation.Saga;
+import org.fireflyframework.orchestration.saga.annotation.SagaStep;
+import org.fireflyframework.orchestration.saga.annotation.StepEvent;
+import org.fireflyframework.orchestration.core.context.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -28,7 +28,7 @@ public class UpdateFeeRuleSaga {
 
     @SagaStep(id = STEP_UPDATE_FEE)
     @StepEvent(type = EVENT_FEE_UPDATED)
-    public Mono<UUID> updateFeeApplicationRule(UpdateFeeApplicationRuleCommand cmd, SagaContext ctx) {
+    public Mono<UUID> updateFeeApplicationRule(UpdateFeeApplicationRuleCommand cmd, ExecutionContext ctx) {
         return commandBus.send(cmd);
     }
 

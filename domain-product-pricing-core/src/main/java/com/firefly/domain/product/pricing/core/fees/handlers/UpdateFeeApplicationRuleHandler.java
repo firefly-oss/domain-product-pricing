@@ -20,7 +20,7 @@ public class UpdateFeeApplicationRuleHandler extends CommandHandler<UpdateFeeApp
 
     @Override
     protected Mono<UUID> doHandle(UpdateFeeApplicationRuleCommand cmd) {
-        return productConfigurationApi.updateConfiguration(cmd.getProductId(), cmd.getFeeApplicationRuleId(), cmd)
+        return productConfigurationApi.updateConfiguration(cmd.getProductId(), cmd.getFeeApplicationRuleId(), cmd, UUID.randomUUID().toString())
                 .mapNotNull(productConfigurationDTO ->
                         Objects.requireNonNull(Objects.requireNonNull(productConfigurationDTO).getProductConfigurationId()));
     }

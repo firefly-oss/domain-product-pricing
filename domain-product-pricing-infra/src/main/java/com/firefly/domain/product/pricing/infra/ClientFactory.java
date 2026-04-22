@@ -1,6 +1,7 @@
 package com.firefly.domain.product.pricing.infra;
 
 import com.firefly.core.product.sdk.api.ProductConfigurationApi;
+import com.firefly.core.product.sdk.api.ProductVersionApi;
 import com.firefly.core.product.sdk.invoker.ApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +26,11 @@ public class ClientFactory {
     @Bean
     public ProductConfigurationApi productConfigurationApi() {
         return new ProductConfigurationApi(apiClient);
+    }
+
+    @Bean
+    public ProductVersionApi productVersionApi() {
+        return new ProductVersionApi(apiClient);
     }
 
 }

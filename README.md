@@ -13,8 +13,13 @@ Product Domain Pricing is the domain orchestration layer responsible for:
 - **Pricing management** -- register and amend product pricing with tiered rates and effective-from date versioning.
 - **Fee scheme management** -- define complete fee schemas (structure, components, application rules, and product-fee-structure linkage) within a single transactional saga with automatic compensation on failure.
 - **Eligibility evaluation** -- publish, adjust, and evaluate eligibility criteria (KYC/KYB, credit score, income, activity) to determine applicant fit.
+- **Scheme impact simulation** -- project the portfolio-wide impact of a proposed pricing scheme change (new interest rate / fee / APR) over all referencing products under a reference scenario. Read-only aggregation; no persistence.
+- **Pricing waivers CRUD** -- create, update, remove and search pricing waivers / promotional discounts stored as product configurations with `configKey = WAIVER_<code>`.
+- **Pricing history** -- best-effort audit timeline for a pricing entity, reconstructed from `ProductVersion` records and the configuration's own `createdAt`/`updatedAt` timestamps. Flagged as interim until a centralized audit store is available.
 - **Event-driven architecture** -- every saga step emits domain events to Kafka for downstream consumers.
 - **SDK generation** -- auto-generates a reactive Java client SDK from the OpenAPI specification.
+
+> **Scope note.** An earlier iteration of this service exposed a `/rate-card/generate` endpoint that materialized PDF/XLSX rate-card files in-process using Apache POI and OpenHTMLToPDF. That feature was removed on tier-mismatch grounds (file rendering is a presentation / experience-tier concern, not a domain-orchestration concern; synchronous rendering blocks the WebFlux event loop; ~20 MB of transitive deps on a non-banking-core feature). Rate-card rendering should live in an experience service (e.g., `exp-backoffice-pricing`) that consumes this service's SDK plus the core `ProductConfigurationApi`, or in a dedicated document-generation service.
 
 ---
 
@@ -67,6 +72,30 @@ domain-product-pricing (parent POM)
 | `RegisterPricingSaga`    | registerProductPricing                                                                                   | None         |
 | `UpdatePricingSaga`      | updatePricing                                                                                            | None         |
 
+### Waivers (CQRS)
+
+Pricing waivers are stored as `ProductConfiguration` entries on the parent product, with `configType = CUSTOM` and `configKey = WAIVER_<code>`. CRUD is exposed via a standard CQRS command/query pair:
+
+| Component | Role |
+|---|---|
+| `CreateWaiverCommand` → `CreateWaiverHandler` | Serializes `WaiverSpec` to JSON, calls `productConfigurationApi.createConfiguration(productId, …, UUID.randomUUID().toString())`; fails fast if the response has no id. |
+| `UpdateWaiverCommand` → `UpdateWaiverHandler` | Calls `productConfigurationApi.updateConfiguration(productId, waiverId, …)`. |
+| `RemoveWaiverCommand` → `RemoveWaiverHandler` | Calls `productConfigurationApi.deleteConfiguration(productId, waiverId, …)`. |
+| `WaiverSearchQuery`   → `SearchWaiversHandler` | Filters configurations by `WAIVER_` key prefix, deserializes the JSON blob to `WaiverSpec`, and applies in-memory filters (`codeContains`, `activeOn`). |
+
+### Read-only services (no saga)
+
+| Service | Purpose |
+|---|---|
+| `SchemeImpactSimulationService` | Projects the effect of a `PricingSchemeUpdate` over every pricing configuration referencing the scheme. For each affected product it computes current vs proposed monthly payment under a fixed reference scenario (€10 000 / 12 months) and returns per-product deltas plus aggregate `avg / maxIncrease / maxDecrease` percentages. Bounded concurrency via `Flux.flatMap(..., 8)`. |
+| `PricingHistoryService` | Best-effort audit timeline for a pricing entity. Pulls `ProductVersion` records via `ProductVersionApi.filterProductVersions`, falls back to a single synthetic `CREATED` entry when none exist, swallows SDK errors and degrades gracefully. Flagged with a `TODO` comment until a centralized audit store is wired in. |
+
+### Error handling: downstream transport failures
+
+Because the waiver search goes through the CQRS `QueryBus`, a `WebClientRequestException` or `ConnectException` from the underlying `core-common-product-mgmt` call is wrapped in `QueryProcessingException` — which the framework's shared exception converter does not recognize, so the default response would be HTTP 500 `UNEXPECTED_ERROR`.
+
+To align with the rest of the platform, `PricingServiceImpl.searchWaivers` walks the cause chain after the `QueryBus` wraps and re-maps transport failures to the framework's `ServiceUnavailableException`, which is rendered as HTTP 503 `service_unavailable` with an RFC 7807 body. Unrelated errors fall through untouched.
+
 ### Domain Events
 
 All events are published to the `domain-layer` Kafka topic:
@@ -78,6 +107,9 @@ All events are published to the `domain-layer` Kafka topic:
 - `fee.updated`
 - `productPricing.registered`
 - `pricing.updated`
+- `pricing.waiver.created`
+- `pricing.waiver.removed`
+- `pricing.scheme-impact.simulated`
 
 ---
 
@@ -166,6 +198,22 @@ java -jar domain-product-pricing-web/target/domain-product-pricing.jar
 | POST   | `/api/v1/pricing/eligibility`                     | Publish eligibility criteria (KYC/KYB, score, income, activity) |
 | PATCH  | `/api/v1/pricing/eligibility/{eligibilityId}`     | Adjust eligibility criteria with versioning        |
 | POST   | `/api/v1/pricing/eligibility/{eligibilityId}/evaluate` | Evaluate applicant facts (returns fit/not-fit with reasons) |
+
+### Scheme impact + history
+
+| Method | Endpoint                                              | Description                                        |
+|--------|-------------------------------------------------------|----------------------------------------------------|
+| POST   | `/api/v1/pricing/schemes/{id}/simulate-impact`        | Project the portfolio-wide impact of a proposed `PricingSchemeUpdate`. Read-only, returns `SchemeImpactReport` with per-product deltas and aggregate stats. |
+| GET    | `/api/v1/pricing/history/{entityId}?from=…&to=…`      | Best-effort audit timeline for a pricing configuration entity. Optional `from` / `to` ISO-date range. |
+
+### Waivers (`/api/v1/pricing/waivers`)
+
+| Method | Endpoint                               | Description                                   |
+|--------|----------------------------------------|-----------------------------------------------|
+| POST   | `/api/v1/pricing/waivers`              | Create a waiver (body: `CreateWaiverCommand`). Returns `waiverId`. |
+| PUT    | `/api/v1/pricing/waivers/{waiverId}?productId={uuid}`   | Replace a waiver's spec (body: `WaiverSpec`). |
+| DELETE | `/api/v1/pricing/waivers/{waiverId}?productId={uuid}`   | Remove a waiver.                              |
+| GET    | `/api/v1/pricing/waivers/search?productId=…&codeContains=…&activeOn=…` | Search waivers on a product with optional code substring + active-on date filters. |
 
 ### OpenAPI / Swagger UI
 

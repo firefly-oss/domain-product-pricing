@@ -35,5 +35,19 @@ public class ProductPricingConstants {
     public static final String EVENT_PRODUCT_FEE_STRUCTURE_REGISTERED = "productFeeStructure.registered";
     public static final String EVENT_FEE_UPDATED = "fee.updated";
 
+    // ============================== CONFIGURATION TYPES (Step 3C.1) ==============================
+    public static final String CONFIG_TYPE_PRICING_WAIVER = "PRICING_WAIVER";
+    public static final String CONFIG_TYPE_PRICING_HISTORY = "PRICING_HISTORY";
+
+    // ============================== COMMAND / QUERY NAMES (Step 3C.1) ==============================
+    public static final String CMD_CREATE_WAIVER = "create-waiver";
+    public static final String CMD_UPDATE_WAIVER = "update-waiver";
+    public static final String CMD_REMOVE_WAIVER = "remove-waiver";
+
+    // ============================== AUDIT EVENT TYPES (Step 3C.1) ==============================
+    public static final String EVENT_WAIVER_CREATED = "pricing.waiver.created";
+    public static final String EVENT_WAIVER_REMOVED = "pricing.waiver.removed";
+    public static final String EVENT_SCHEME_IMPACT_SIMULATED = "pricing.scheme-impact.simulated";
+
 
 }

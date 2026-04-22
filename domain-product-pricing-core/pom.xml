@@ -41,6 +41,12 @@
             <artifactId>fireflyframework-starter-domain</artifactId>
         </dependency>
 
+        <!-- For BusinessException / ServiceUnavailableException when mapping downstream SDK errors -->
+        <dependency>
+            <groupId>org.fireflyframework</groupId>
+            <artifactId>fireflyframework-web</artifactId>
+        </dependency>
+
         <!-- Spring WebFlux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

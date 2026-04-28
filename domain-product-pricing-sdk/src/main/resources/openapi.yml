@@ -1,0 +1,460 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:18080
+  description: Generated server url
+tags:
+- name: Fees
+  description: CQ queries and registration for product fees
+- name: Pricing
+  description: CQ queries and registration for product pricing
+- name: Eligibility
+  description: CQ queries and registration for product eligibility
+paths:
+  /api/v1/pricing/{pricingId}:
+    put:
+      tags:
+      - Pricing
+      summary: Amend pricing
+      description: Amend rates/margins/tiers by creating a new effective version.
+      operationId: amendPricing
+      parameters:
+      - name: pricingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductPricingCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/pricing/fees/schemes/{schemeId}/components/{componentId}:
+    put:
+      tags:
+      - Fees
+      summary: Update fee rule
+      description: Update a specific fee calculation rule.
+      operationId: updateFeeRule
+      parameters:
+      - name: schemeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: componentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFeeApplicationRuleCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/pricing:
+    post:
+      tags:
+      - Pricing
+      summary: Register pricing
+      description: Create rates with tiers and effectiveFrom date.
+      operationId: registerPricing
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterProductPricingCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/pricing/fees/schemes:
+    post:
+      tags:
+      - Fees
+      summary: Define fee scheme
+      description: Define fee types and calculation rules.
+      operationId: defineFeeScheme
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterFeeSchemaCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/pricing/eligibility:
+    post:
+      tags:
+      - Eligibility
+      summary: Publish eligibility criteria
+      description: "Publish eligibility rules (KYC/KYB, score, income, activity)."
+      operationId: publishEligibility
+      parameters:
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishEligibilityCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/pricing/eligibility/{eligibilityId}/evaluate:
+    post:
+      tags:
+      - Eligibility
+      summary: Evaluate eligibility
+      description: Evaluate applicant facts and return fit/not-fit with reasons.
+      operationId: evaluateEligibility
+      parameters:
+      - name: eligibilityId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluateEligibilityCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/pricing/eligibility/{eligibilityId}:
+    patch:
+      tags:
+      - Eligibility
+      summary: Adjust eligibility criteria
+      description: Adjust criteria with versioning.
+      operationId: adjustEligibility
+      parameters:
+      - name: eligibilityId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Idempotency-Key
+        in: header
+        description: "Unique key for idempotent requests. If provided, ensures that\
+          \ identical requests with the same key will only be processed once."
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdjustEligibilityCommand"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+components:
+  schemas:
+    UpdateProductPricingCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+        productPricingId:
+          type: string
+          format: uuid
+    UpdateFeeApplicationRuleCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+        feeApplicationRuleId:
+          type: string
+          format: uuid
+        feeComponentId:
+          type: string
+          format: uuid
+    RegisterProductPricingCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+    RegisterFeeApplicationRuleCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+        feeComponentId:
+          type: string
+          format: uuid
+    RegisterFeeComponentCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+        feeStructureId:
+          type: string
+          format: uuid
+    RegisterFeeSchemaCommand:
+      type: object
+      properties:
+        feeApplicationRule:
+          $ref: "#/components/schemas/RegisterFeeApplicationRuleCommand"
+        feeStructure:
+          $ref: "#/components/schemas/RegisterFeeStructureCommand"
+        feeComponent:
+          $ref: "#/components/schemas/RegisterFeeComponentCommand"
+        productFeeStructure:
+          $ref: "#/components/schemas/RegisterProductFeeStructureCommand"
+    RegisterFeeStructureCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+    RegisterProductFeeStructureCommand:
+      type: object
+      properties:
+        dateCreated:
+          type: string
+          format: date-time
+        dateUpdated:
+          type: string
+          format: date-time
+        productConfigurationId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        configType:
+          type: string
+          enum:
+          - PRICING
+          - LIMITS
+          - FEATURES
+          - CUSTOM
+        configKey:
+          type: string
+        configValue:
+          type: string
+        feeStructureId:
+          type: string
+          format: uuid
+    PublishEligibilityCommand:
+      type: object
+    EvaluateEligibilityCommand:
+      type: object
+    AdjustEligibilityCommand:
+      type: object

@@ -3,6 +3,7 @@ package com.firefly.domain.product.pricing.web.controller;
 import com.firefly.domain.product.pricing.core.eligibility.commands.AdjustEligibilityCommand;
 import com.firefly.domain.product.pricing.core.eligibility.commands.EvaluateEligibilityCommand;
 import com.firefly.domain.product.pricing.core.eligibility.commands.PublishEligibilityCommand;
+import com.firefly.domain.product.pricing.core.eligibility.results.EligibilityResultDTO;
 import com.firefly.domain.product.pricing.core.eligibility.services.EligibilityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,9 +41,9 @@ public class EligibilityController {
 
     @Operation(summary = "Evaluate eligibility", description = "Evaluate applicant facts and return fit/not-fit with reasons.")
     @PostMapping("/{eligibilityId}/evaluate")
-    public Mono<ResponseEntity<Object>> evaluateEligibility(@PathVariable UUID eligibilityId,
-                                                            @Valid @RequestBody EvaluateEligibilityCommand command) {
+    public Mono<ResponseEntity<EligibilityResultDTO>> evaluateEligibility(@PathVariable UUID eligibilityId,
+                                                                          @Valid @RequestBody EvaluateEligibilityCommand command) {
         return eligibilityService.evaluateEligibility(command)
-                .thenReturn(ResponseEntity.ok().build());
+                .map(ResponseEntity::ok);
     }
 }

@@ -16,11 +16,29 @@
 
 package com.firefly.domain.product.pricing.core.eligibility.commands;
 
-import org.fireflyframework.cqrs.command.Command;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
+import org.fireflyframework.cqrs.command.Command;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
+@Schema(description = "Applicant facts used to evaluate eligibility for a product")
 public class EvaluateEligibilityCommand implements Command<UUID> {
+
+    @NotNull
+    @Schema(description = "Identifier of the applicant party", example = "6c04e2bc-5523-4bc7-9002-528f2dbe3229")
+    private UUID partyId;
+
+    @NotNull
+    @Schema(description = "Identifier of the product being evaluated", example = "00000000-0000-0000-0000-00000000000a")
+    private UUID productId;
+
+    @NotNull
+    @Positive
+    @Schema(description = "Principal amount the applicant is requesting", example = "10000")
+    private BigDecimal requestedAmount;
 }

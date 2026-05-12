@@ -204,7 +204,7 @@ paths:
           content:
             '*/*':
               schema:
-                type: object
+                $ref: "#/components/schemas/EligibilityResultDTO"
   /api/v1/pricing/eligibility/{eligibilityId}:
     patch:
       tags:
@@ -455,6 +455,55 @@ components:
     PublishEligibilityCommand:
       type: object
     EvaluateEligibilityCommand:
+      required:
+      - partyId
+      - productId
+      - requestedAmount
       type: object
+      properties:
+        partyId:
+          type: string
+          description: Identifier of the applicant party
+          format: uuid
+          example: 6c04e2bc-5523-4bc7-9002-528f2dbe3229
+        productId:
+          type: string
+          description: Identifier of the product being evaluated
+          format: uuid
+          example: 00000000-0000-0000-0000-00000000000a
+        requestedAmount:
+          type: number
+          description: Principal amount the applicant is requesting
+          example: 10000
+      description: Applicant facts used to evaluate eligibility for a product
+    EligibilityResultDTO:
+      type: object
+      properties:
+        evaluationId:
+          type: string
+          description: Identifier assigned to this evaluation
+          format: uuid
+          example: 0c3a5d3b-7c2c-4dca-8e2f-1e4d8a4d0b1a
+        eligible:
+          type: boolean
+          description: Whether the applicant is eligible for the product with the
+            requested amount
+          example: true
+        maxAmount:
+          type: number
+          description: Maximum amount the product allows for this applicant
+          example: 60000
+        reasons:
+          type: array
+          description: Codes describing why the applicant is not eligible (empty when
+            eligible)
+          example:
+          - AMOUNT_ABOVE_MAXIMUM
+          items:
+            type: string
+            description: Codes describing why the applicant is not eligible (empty
+              when eligible)
+            example: "[\"AMOUNT_ABOVE_MAXIMUM\"]"
+      description: Outcome of a product eligibility evaluation
     AdjustEligibilityCommand:
       type: object

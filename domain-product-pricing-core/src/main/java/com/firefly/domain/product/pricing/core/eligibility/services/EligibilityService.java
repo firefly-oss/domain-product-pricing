@@ -3,6 +3,7 @@ package com.firefly.domain.product.pricing.core.eligibility.services;
 import com.firefly.domain.product.pricing.core.eligibility.commands.AdjustEligibilityCommand;
 import com.firefly.domain.product.pricing.core.eligibility.commands.EvaluateEligibilityCommand;
 import com.firefly.domain.product.pricing.core.eligibility.commands.PublishEligibilityCommand;
+import com.firefly.domain.product.pricing.core.eligibility.results.EligibilityResultDTO;
 import org.fireflyframework.orchestration.saga.engine.SagaResult;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
@@ -28,10 +29,9 @@ public interface EligibilityService {
 
     /**
      * Evaluates eligibility based on applicant facts and determines their fit with the eligibility criteria.
-     * This method processes the provided {@code EvaluateEligibilityCommand} and returns the evaluation result.
      *
-     * @param command an instance of {@code EvaluateEligibilityCommand} containing the necessary data for evaluating eligibility
-     * @return a {@code Mono<SagaResult>} representing the outcome of the eligibility evaluation, including reasons for fit/not-fit
+     * @param command applicant facts ({@code partyId}, {@code productId}, {@code requestedAmount})
+     * @return outcome of the evaluation including {@code eligible}, {@code maxAmount} and failure {@code reasons}
      */
-    Mono<SagaResult> evaluateEligibility(@Valid EvaluateEligibilityCommand command);
+    Mono<EligibilityResultDTO> evaluateEligibility(@Valid EvaluateEligibilityCommand command);
 }

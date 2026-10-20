@@ -1,4 +1,17 @@
-# Product Domain Pricing
+<a href="https://fireflysoftware.io/openplatform/">
+<picture>
+  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-narrow-dark.svg">
+  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-narrow-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-dark.svg">
+  <img src="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-light.svg" alt="Firefly OpenPlatform - Domain Product - Pricing" width="100%">
+</picture>
+</a>
+
+# Firefly OpenPlatform - Domain Product - Pricing
+
+Developed by the Firefly Software Foundation. [dev@fireflysoftware.io](mailto:dev@fireflysoftware.io)
+
+[Website](https://fireflysoftware.io/) · [OpenPlatform](https://fireflysoftware.io/openplatform/) · [Module catalogue](https://fireflysoftware.io/openplatform/modules/)
 
 A reactive domain-layer microservice that orchestrates product pricing, fee management, and eligibility evaluation. Built on [FireflyFramework](https://github.com/fireflyframework/) and Spring WebFlux, this service exposes a CQRS/Saga-driven API that delegates persistence to the **core-common-product-mgmt** platform service.
 

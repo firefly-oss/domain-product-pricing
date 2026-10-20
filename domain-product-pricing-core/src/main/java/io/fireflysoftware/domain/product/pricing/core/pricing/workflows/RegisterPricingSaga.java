@@ -1,0 +1,36 @@
+package io.fireflysoftware.domain.product.pricing.core.pricing.workflows;
+
+import org.fireflyframework.cqrs.command.CommandBus;
+import io.fireflysoftware.domain.product.pricing.core.pricing.commands.RegisterProductPricingCommand;
+import org.fireflyframework.orchestration.saga.annotation.Saga;
+import org.fireflyframework.orchestration.saga.annotation.SagaStep;
+import org.fireflyframework.orchestration.saga.annotation.StepEvent;
+import org.fireflyframework.orchestration.core.context.ExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
+import java.util.UUID;
+
+import static io.fireflysoftware.domain.product.pricing.core.utils.constants.ProductPricingConstants.*;
+
+
+@Saga(name = SAGA_REGISTER_PRICING)
+@Service
+public class RegisterPricingSaga {
+
+    private final CommandBus commandBus;
+
+    @Autowired
+    public RegisterPricingSaga(CommandBus commandBus) {
+        this.commandBus = commandBus;
+    }
+
+    @SagaStep(id = STEP_REGISTER_PRODUCT_PRICING)
+    @StepEvent(type = EVENT_PRODUCT_PRICING_REGISTERED)
+    public Mono<UUID> registerPricing(RegisterProductPricingCommand cmd, ExecutionContext ctx) {
+        return commandBus.send(cmd);
+    }
+
+
+}

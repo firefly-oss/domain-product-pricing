@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>domain-product-pricing-interfaces</artifactId>
+    <name>domain-product-pricing-interfaces</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>

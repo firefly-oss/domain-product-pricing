@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>domain-product-pricing-sdk</artifactId>
+    <name>domain-product-pricing-sdk</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

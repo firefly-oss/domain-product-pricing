@@ -5,13 +5,13 @@
     "description": "Product Domain Pricing Layer Application",
     "contact": {
       "name": "Firefly Software Foundation",
-      "email": "dev@getfirefly.io"
+      "email": "dev@fireflysoftware.io"
     },
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://core.getfirefly.io/domain-product-pricing",
+      "url": "https://openplatform.fireflysoftware.io/domain-product-pricing",
       "description": "Development Environment"
     },
     {

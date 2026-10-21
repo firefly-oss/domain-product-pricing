@@ -34,6 +34,7 @@ public class FeeServiceImpl implements FeesService {
     @Override
     public Mono<SagaResult> updateFeeRule(UpdateFeeApplicationRuleCommand command) {
         StepInputs inputs = StepInputs.builder()
+                .forStepId("readFeeRule", command)
                 .forStepId("updateFee", command)
                 .build();
         return engine.execute("UpdateFeeRuleSaga", inputs);

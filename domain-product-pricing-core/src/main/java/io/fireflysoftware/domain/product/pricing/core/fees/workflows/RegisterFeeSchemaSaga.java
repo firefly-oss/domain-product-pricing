@@ -1,24 +1,29 @@
 package io.fireflysoftware.domain.product.pricing.core.fees.workflows;
 
+import io.fireflysoftware.domain.product.pricing.core.fees.commands.RegisterProductFeeStructureCommand;
+import io.fireflysoftware.domain.product.pricing.core.pricing.commands.RemoveProductConfigurationCommand;
 import org.fireflyframework.cqrs.command.CommandBus;
-import io.fireflysoftware.domain.product.pricing.core.fees.commands.*;
+import org.fireflyframework.orchestration.core.context.ExecutionContext;
 import org.fireflyframework.orchestration.saga.annotation.Saga;
 import org.fireflyframework.orchestration.saga.annotation.SagaStep;
 import org.fireflyframework.orchestration.saga.annotation.StepEvent;
-import org.fireflyframework.orchestration.core.context.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static io.fireflysoftware.domain.product.pricing.core.utils.constants.GlobalConstants.*;
-import static io.fireflysoftware.domain.product.pricing.core.utils.constants.ProductPricingConstants.*;
+import static io.fireflysoftware.domain.product.pricing.core.utils.constants.ProductPricingConstants.SAGA_REGISTER_FEE_SCHEMA;
 
-
+/**
+ * Optional product_configuration write. Fee structures, components, and rules
+ * are not separate aggregates. A missing row does not fail the product.
+ */
 @Saga(name = SAGA_REGISTER_FEE_SCHEMA)
 @Service
 public class RegisterFeeSchemaSaga {
+
+    private static final UUID SKIPPED = new UUID(0L, 0L);
 
     private final CommandBus commandBus;
 
@@ -27,55 +32,21 @@ public class RegisterFeeSchemaSaga {
         this.commandBus = commandBus;
     }
 
-
-    @SagaStep(id = STEP_REGISTER_FEE_STRUCTURE, compensate = COMPENSATE_REMOVE_FEE_STRUCTURE)
-    @StepEvent(type = EVENT_FEE_STRUCTURE_REGISTERED)
-    public Mono<UUID> registerFeeStructure(RegisterFeeStructureCommand cmd, ExecutionContext ctx) {
-        return commandBus.send(cmd)
-                .doOnNext(freeStructureId -> ctx.putVariable(CTX_FEE_STRUCTURE_ID, freeStructureId));
-    }
-
-    public Mono<Void> removeFeeStructure(UUID feeStructureId, ExecutionContext ctx) {
-        return commandBus.send(new RemoveFeeStructureCommand(ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class), feeStructureId));
-    }
-
-
-    @SagaStep(id = STEP_REGISTER_FEE_COMPONENT, compensate = COMPENSATE_REMOVE_FEE_COMPONENT, dependsOn = STEP_REGISTER_FEE_STRUCTURE)
-    @StepEvent(type = EVENT_FEE_COMPONENT_REGISTERED)
-    public Mono<UUID> registerFeeComponent(RegisterFeeComponentCommand cmd, ExecutionContext ctx) {
-        return commandBus.send(cmd.withFeeStructureId(ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class)))
-                .doOnNext(feeComponentId -> ctx.putVariable(CTX_FEE_COMPONENT_ID, feeComponentId));
-    }
-
-    public Mono<Void> removeFeeComponent(UUID feeComponentId, ExecutionContext ctx) {
-        return commandBus.send(new RemoveFeeComponentCommand(ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class), feeComponentId, ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class)));
-    }
-
-    @SagaStep(id = STEP_REGISTER_FEE_APPLICATION_RULE, compensate = COMPENSATE_REMOVE_FEE_APPLICATION_RULE, dependsOn = {STEP_REGISTER_FEE_COMPONENT, STEP_REGISTER_FEE_STRUCTURE})
-    @StepEvent(type = EVENT_FEE_APPLICATION_RULE_REGISTERED)
-    public Mono<UUID> registerFeeApplicationRule(RegisterFeeApplicationRuleCommand cmd, ExecutionContext ctx) {
-        return commandBus.send(cmd
-                .withFeeComponentId(ctx.getVariableAs(CTX_FEE_COMPONENT_ID, UUID.class)));
-    }
-
-    public Mono<Void> removeFeeApplicationRule(UUID feeApplicationRuleId, ExecutionContext ctx) {
-        return commandBus.send(new RemoveFeeApplicationRuleCommand(
-                ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class),
-                feeApplicationRuleId,
-                ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class),
-                ctx.getVariableAs(CTX_FEE_COMPONENT_ID, UUID.class)));
-    }
-
-    @SagaStep(id = STEP_REGISTER_PRODUCT_FEE_STRUCTURE, compensate = COMPENSATE_REMOVE_PRODUCT_FEE_STRUCTURE, dependsOn = {STEP_REGISTER_FEE_STRUCTURE})
-    @StepEvent(type = EVENT_PRODUCT_FEE_STRUCTURE_REGISTERED)
+    @SagaStep(id = "registerProductFeeStructure", compensate = "removeProductFeeConfiguration")
+    @StepEvent(type = "productConfiguration.registered")
     public Mono<UUID> registerProductFeeStructure(RegisterProductFeeStructureCommand cmd, ExecutionContext ctx) {
-        return commandBus.send(cmd
-                        .withFeeStructureId(ctx.getVariableAs(CTX_FEE_STRUCTURE_ID, UUID.class)))
-                .doOnNext(productFeeStructureId -> ctx.putVariable(CTX_PRODUCT_FEE_STRUCTURE_ID, productFeeStructureId));
+        if (cmd == null || cmd.getProductId() == null) {
+            return Mono.just(SKIPPED);
+        }
+        ctx.putVariable("productId", cmd.getProductId());
+        return commandBus.send(cmd);
     }
 
-    public Mono<Void> removeProductFeeStructure(UUID productFeeStructureId, ExecutionContext ctx) {
-        return commandBus.send(new RemoveProductFeeStructureCommand(ctx.getVariableAs(CTX_PRODUCT_ID, UUID.class), productFeeStructureId));
+    public Mono<Void> removeProductFeeConfiguration(UUID configurationId, ExecutionContext ctx) {
+        if (configurationId == null || SKIPPED.equals(configurationId)) {
+            return Mono.empty();
+        }
+        return commandBus.send(new RemoveProductConfigurationCommand(
+                ctx.getVariableAs("productId", UUID.class), configurationId));
     }
-
 }

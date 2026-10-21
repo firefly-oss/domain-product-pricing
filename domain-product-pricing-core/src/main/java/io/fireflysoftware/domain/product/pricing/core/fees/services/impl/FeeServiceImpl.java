@@ -26,9 +26,6 @@ public class FeeServiceImpl implements FeesService {
     @Override
     public Mono<SagaResult> defineFeeScheme(RegisterFeeSchemaCommand command) {
         StepInputs inputs = StepInputs.builder()
-                .forStepId("registerFeeStructure", command.getFeeStructure())
-                .forStepId("registerFeeComponent", command.getFeeComponent())
-                .forStepId("registerFeeApplicationRule", command.getFeeApplicationRule())
                 .forStepId("registerProductFeeStructure", command.getProductFeeStructure())
                 .build();
         return engine.execute("RegisterFeeSchemaSaga", inputs);

@@ -1,9 +1,9 @@
 <a href="https://fireflysoftware.io/openplatform/">
 <picture>
-  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-narrow-dark.svg">
-  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-narrow-light.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-dark.svg">
-  <img src="https://raw.githubusercontent.com/firefly-oss/.github/main/profile/assets/banner-light.svg" alt="Firefly OpenPlatform - Domain Product - Pricing" width="100%">
+  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-narrow-dark.svg">
+  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-narrow-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-dark.svg">
+  <img src="https://raw.githubusercontent.com/fireflysoftwaresolutions/.github/main/profile/assets/banner-light.svg" alt="Firefly OpenPlatform - Domain Product - Pricing" width="100%">
 </picture>
 </a>
 
@@ -23,8 +23,8 @@ A reactive domain-layer microservice that orchestrates product pricing, fee mana
 
 Product Domain Pricing is the domain orchestration layer responsible for:
 
-- **Pricing management** -- register and amend product pricing with tiered rates and effective-from date versioning.
-- **Fee scheme management** -- define complete fee schemas (structure, components, application rules, and product-fee-structure linkage) within a single transactional saga with automatic compensation on failure.
+- **Pricing management** -- register and amend optional `product_configuration` rows. A product that is not a loan succeeds when amount, rate, and fee rows are absent; the calculator returns empty fields.
+- **Configuration compensation** -- creating a pricing row deletes it if a later step fails. Amending a row restores the previous configuration. Fee structures, components, and application rules are not separate aggregates.
 - **Eligibility evaluation** -- publish, adjust, and evaluate eligibility criteria (KYC/KYB, credit score, income, activity) to determine applicant fit.
 - **Event-driven architecture** -- every saga step emits domain events to Kafka for downstream consumers.
 - **SDK generation** -- auto-generates a reactive Java client SDK from the OpenAPI specification.
@@ -75,10 +75,9 @@ domain-product-pricing (parent POM)
 
 | Saga                     | Steps                                                                                                    | Compensation |
 |--------------------------|----------------------------------------------------------------------------------------------------------|--------------|
-| `RegisterFeeSchemaSaga`  | registerFeeStructure -> registerFeeComponent -> registerFeeApplicationRule -> registerProductFeeStructure | Full rollback via compensate methods |
-| `UpdateFeeRuleSaga`      | updateFeeApplicationRule                                                                                 | None         |
-| `RegisterPricingSaga`    | registerProductPricing                                                                                   | None         |
-| `UpdatePricingSaga`      | updatePricing                                                                                            | None         |
+| `RegisterPricingSaga`    | register optional product configuration | Deletes the configuration row |
+| `UpdatePricingSaga`      | read configuration -> update configuration | Restores the previous row |
+| `RegisterFeeSchemaSaga`  | optional single product_configuration row | Deletes that row. Fee structure, component, and rule are not separate aggregates. |
 
 ### Domain Events
 

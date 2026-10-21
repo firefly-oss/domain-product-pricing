@@ -33,6 +33,7 @@ public class PricingServiceImpl implements PricingService {
     @Override
     public Mono<SagaResult> amendPricing(UpdateProductPricingCommand updateProductPricingCommand) {
         StepInputs inputs = StepInputs.builder()
+                .forStepId("readPricing", updateProductPricingCommand)
                 .forStepId("updatePricing", updateProductPricingCommand)
                 .build();
         return engine.execute("UpdatePricingSaga", inputs);
